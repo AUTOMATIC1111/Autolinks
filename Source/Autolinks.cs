@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace Autolinks
     {
         static void AddLink(Def def, Def toAdd)
         {
-            if (toAdd == null) return;
+            if (def==null || toAdd == null) return;
             if (def.descriptionHyperlinks == null) def.descriptionHyperlinks = new List<DefHyperlink>();
 
             if (def.descriptionHyperlinks.Any(x => x.def == toAdd)) return;
@@ -74,10 +75,22 @@ namespace Autolinks
 
             if (def.appliedOnFixedBodyParts != null) foreach (var v in def.appliedOnFixedBodyParts) AddMulti(def, v);
             if (def.appliedOnFixedBodyPartGroups != null) foreach (var v in def.appliedOnFixedBodyPartGroups) AddMulti(def, v);
-    }
+        }
 
         static void ProcessThing(ThingDef def)
         {
+            CompProperties_Hatcher hatcher = def.GetCompProperties<CompProperties_Hatcher>();
+            if (hatcher != null)
+            {
+                AddMulti(def, hatcher.hatcherPawn?.race);
+            }
+
+            Def corpseDef = def.race?.corpseDef;
+            if (corpseDef != null && !def.race.Humanlike)
+            {
+                AddLink(corpseDef, def);
+            }
+
             BuildableDef buildable = def as BuildableDef;
             if (buildable == null) return;
 
